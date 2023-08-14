@@ -1,0 +1,47 @@
+import sqlite3
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# SQLite veritabanına bağlan
+conn = sqlite3.connect('deneme.db')
+cursor = conn.cursor()
+# Veriyi çek
+cursor.execute("SELECT tag, COUNT(*) AS tekrar_sayisi FROM tagler GROUP BY tag ORDER BY tekrar_sayisi DESC LIMIT 50")
+data = cursor.fetchall()
+
+# Bağlantıyı kapat
+conn.close()
+
+# Verileri özellikler (X) ve hedef değişken (y) olarak ayır
+X = np.array([row[1] for row in data]).reshape(-1, 1)
+y = np.array([row[0] for row in data])
+# Verileri eğitim ve test kümelerine ayır
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Lojistik regresyon modelini oluştur
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Modeli değerlendir
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy}")
+
+# Karar sınırını gösteren grafik
+plt.figure(figsize=(10, 6))
+plt.scatter(X, y, color='blue', alpha=0.7, label='Veri Dağilimi')
+plt.xlabel('Tekrar Sayisi (X)')
+plt.ylabel('Tag')
+plt.title('Veri Dağilimi ve Karar Siniri')
+
+X_range = np.linspace(min(X), max(X), 100)
+y_prob = model.predict_proba(X_range.reshape(-1, 1))[:, 1]
+plt.plot(X_range, y_prob, color='red', linewidth=2, label='Lojistik Regresyon Karar Siniri')
+plt.axhline(0.5, color='gray', linestyle='dashed', label='Karar Siniri (0.5)')
+plt.legend()
+
+plt.show()
