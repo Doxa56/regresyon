@@ -4,7 +4,7 @@ import os
 import datetime
 
 # Yeni dosya adı oluşturma
-timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H.%M.%S")
 xlsx_filename = f"veriler_{timestamp}.xlsx"
 
 # SQLite veritabanına bağlan
@@ -20,13 +20,11 @@ workbook = openpyxl.Workbook()
 sheet = workbook.active
 
 # Başlıkları yaz
-sheet.cell(row=1, column=1, value="Başliklar")
-sheet.cell(row=1, column=2, value="Tekrar Sayilari")
+sheet.append(["Başliklar", "Tekrar Sayilari"])
 
 # Verileri yaz
-for row_index, (tagler, tekrar_sayisi) in enumerate(rows, start=2):
-    sheet.cell(row=row_index, column=1, value=tagler)
-    sheet.cell(row=row_index, column=2, value=tekrar_sayisi)
+for tagler, tekrar_sayisi in rows:
+    sheet.append([tagler, tekrar_sayisi])
 
 # Dosyayı kaydet
 workbook.save(xlsx_filename)
@@ -34,4 +32,4 @@ workbook.save(xlsx_filename)
 # Bağlantıyı kapat
 conn.close()
 
-print(f"Veriler Excel dosyasina {xlsx_filename} olarak kaydedildi.")
+print(f"Veriler Excel dosyasına {xlsx_filename} olarak kaydedildi.")
