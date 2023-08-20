@@ -1,9 +1,9 @@
 import sqlite3
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 
 # SQLite veritabanına bağlan
 conn = sqlite3.connect('deneme.db')
@@ -22,10 +22,7 @@ repetition_counts = [row[1] for row in data]
 # Aynı kelimenin tekrar sayılarını hesapla
 word_repetitions = {}
 for tag, count in zip(tags, repetition_counts):
-    if tag in word_repetitions:
-        word_repetitions[tag] += count
-    else:
-        word_repetitions[tag] = count
+    word_repetitions[tag] = word_repetitions.get(tag, 0) + count
 
 # Tekrar sayılarını elde et
 repetitions = [word_repetitions[tag] for tag in tags]
@@ -34,24 +31,25 @@ repetitions = [word_repetitions[tag] for tag in tags]
 X = np.array(repetitions).reshape(-1, 1)
 y = np.arange(len(X))
 
-model = LinearRegression()
-model.fit(X, y)
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
 
 # Regresyon doğrusunun eğim ve kesme noktası
 slope = model.coef_[0]
 intercept = model.intercept_
 y_pred = model.predict(X_test)
 
-# Regresyon doğrusunu çizdir
-regression_line = model.predict(X)
-modelin_tahmin_ettigi_y = model.predict(X_train)
-plt.plot(X_train, modelin_tahmin_ettigi_y, color='red')
-plt.scatter(X_train, y_train, color='blue')
+# Grafiği çiz
+plt.figure(figsize=(10, 6))
+plt.scatter(X_train, y_train, color='blue', label='Gerçek Veriler')
+plt.plot(X_train, model.predict(X_train), color='red', label='Regresyon Doğrusu')
+
 plt.title('Linear Regresyon Analizi')
 plt.xlabel('Tekrar Sayisi')
-plt.ylabel('Tag Sirasi')
+plt.ylabel('Tagler')
+plt.legend()
 plt.show()
 
 print(f"Eğim (slope): {slope}")
